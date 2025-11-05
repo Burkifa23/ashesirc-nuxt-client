@@ -1,15 +1,15 @@
 import { ref, computed } from 'vue'
 
-export type RouteName = 'home' | 'topics' | 'archives' | 'about' | 'join' | 'article'
+export type RouteName = 'home' | 'topics' | 'archives' | 'about' | 'join' | 'apply' | 'article'
 
 export interface RouteState {
   name: RouteName
   params: Record<string, string>
 }
 
-function parseHash(): RouteState {
-  const hash = window.location.hash.replace(/^#/, '') || '/'
-  const segments = hash.split('/').filter(Boolean)
+function parsePath(): RouteState {
+  const path = window.location.pathname
+  const segments = path.split('/').filter(Boolean)
 
   // Default route
   if (segments.length === 0) return { name: 'home', params: {} }
@@ -24,6 +24,8 @@ function parseHash(): RouteState {
       return { name: 'about', params: {} }
     case 'join':
       return { name: 'join', params: {} }
+    case 'apply':
+      return { name: 'apply', params: {} }
     case 'article':
       return { name: 'article', params: { slug: second || '' } }
     default:
@@ -31,22 +33,21 @@ function parseHash(): RouteState {
   }
 }
 
-export function useHashRouter() {
-  const state = ref<RouteState>(parseHash())
+export function useRouter() {
+  const state = ref<RouteState>(parsePath())
 
-  const onHashChange = () => {
-    state.value = parseHash()
+  const onPopState = () => {
+    state.value = parsePath()
   }
 
-  window.addEventListener('hashchange', onHashChange)
+  window.addEventListener('popstate', onPopState)
 
   const path = computed(() => state.value)
 
   const navigate = (to: string) => {
-    if (!to.startsWith('#')) {
-      window.location.hash = to.startsWith('/') ? `#${to}` : `#/${to}`
-    } else {
-      window.location.hash = to
+    if (to !== window.location.pathname) {
+      window.history.pushState({}, '', to)
+      state.value = parsePath()
     }
   }
 

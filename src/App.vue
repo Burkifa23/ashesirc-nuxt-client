@@ -7,9 +7,10 @@ import Topics from '@/pages/Topics.vue'
 import Archives from '@/pages/Archives.vue'
 import About from '@/pages/About.vue'
 import Join from '@/pages/Join.vue'
-import { useHashRouter } from '@/router/useHashRouter'
+import Apply from '@/pages/Apply.vue'
+import { useRouter } from '@/router/useHashRouter'
 
-const { route } = useHashRouter()
+const { route } = useRouter()
 </script>
 
 <template>
@@ -21,6 +22,7 @@ const { route } = useHashRouter()
       <Archives v-else-if="route.name === 'archives'" />
       <About v-else-if="route.name === 'about'" />
       <Join v-else-if="route.name === 'join'" />
+      <Apply v-else-if="route.name === 'apply'" />
       <Article v-else-if="route.name === 'article'" />
       <Home v-else />
     </main>

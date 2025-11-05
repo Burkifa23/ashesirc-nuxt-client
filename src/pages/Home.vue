@@ -14,14 +14,14 @@
               Discover cutting-edge research, innovative solutions, and academic excellence from Ghana's premier liberal arts institution. Join us in shaping the future through knowledge and discovery.
             </p>
             <div class="mt-8 flex flex-col gap-4 sm:flex-row">
-              <a href="#/topics" class="inline-flex items-center justify-center gap-2 rounded-md bg-primary px-6 py-3 text-sm font-medium text-white hover:bg-blue-oxford-800 transition-colors">
+              <a href="/topics" class="inline-flex items-center justify-center gap-2 rounded-md bg-primary px-6 py-3 text-sm font-medium text-white hover:bg-blue-oxford-800 transition-colors">
                 Explore Research
                 <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
                   <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5 21 12l-7.5 7.5M21 12H3"/>
                 </svg>
               </a>
-              <a href="#/about" class="inline-flex items-center justify-center gap-2 rounded-md border border-secondary bg-secondary px-6 py-3 text-sm font-medium text-primary hover:bg-vista-blue-300 transition-colors">
-                Learn More
+              <a href="/apply" class="inline-flex items-center justify-center gap-2 rounded-md border border-secondary bg-secondary px-6 py-3 text-sm font-medium text-primary hover:bg-vista-blue-300 transition-colors">
+                Get Featured
               </a>
             </div>
           </div>
@@ -65,7 +65,7 @@
           </p>
           <p class="mt-2 text-xs text-ink/60">By Research Team • Jan 17, 2025 • 8 min read</p>
           <div class="mt-5">
-            <a href="#/article/ashesi-research-excellence" class="inline-flex items-center gap-2 rounded bg-ink px-4 py-2 text-sm font-medium text-paper hover:bg-ink/90">
+            <a href="/article/ashesi-research-excellence" class="inline-flex items-center gap-2 rounded bg-ink px-4 py-2 text-sm font-medium text-paper hover:bg-ink/90">
               Read the story
               <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5 21 12l-7.5 7.5M21 12H3"/></svg>
             </a>
