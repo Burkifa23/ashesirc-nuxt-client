@@ -1,28 +1,60 @@
 <template>
-  <!-- Research Feature Application Form -->
-  <!-- Comment out this entire template to disable the form and use external service -->
-  <main class="min-h-screen bg-paper">
-    <div class="mx-auto max-w-4xl px-4 py-12 md:py-16">
+  <main class="min-h-screen bg-gradient-to-b from-paper to-paper/50">
+    <div class="mx-auto max-w-4xl px-4 py-12 md:py-20">
       <!-- Header Section -->
-      <div class="text-center mb-12">
-        <h1 class="font-serif text-3xl leading-tight text-ink md:text-4xl lg:text-5xl">
-          Get Featured in Our Magazine
+      <div class="text-center mb-16">
+        <h1 class="font-serif text-4xl leading-tight text-ink md:text-5xl lg:text-6xl">
+          Join Our Research Community
         </h1>
-        <p class="mt-4 text-lg text-ink/75 max-w-2xl mx-auto">
-          Share your research with the Ashesi community. We're looking for innovative projects, 
-          groundbreaking discoveries, and inspiring academic journeys to feature in our magazine.
+        <p class="mt-6 text-xl text-ink/70 max-w-3xl mx-auto leading-relaxed">
+          Embark on a journey of discovery. Apply to join Ashesi's premier research initiative where 
+          innovation meets impact, and where your ideas can shape the future.
         </p>
       </div>
 
       <!-- Application Form -->
-      <div class="bg-white rounded-lg border border-slate-200 p-8 md:p-12">
-        <form @submit.prevent="onSubmit" class="space-y-8">
+      <div class="bg-white/80 backdrop-blur-sm rounded-2xl border border-slate-200/50 shadow-2xl p-8 md:p-12">
+        <!-- Success Message -->
+        <div v-if="submitSuccess" class="mb-12 p-6 bg-emerald-50 border-l-4 border-emerald-400 rounded-r-lg">
+          <div class="flex items-center">
+            <div class="flex-shrink-0">
+              <svg class="h-6 w-6 text-emerald-400" fill="currentColor" viewBox="0 0 20 20">
+                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+              </svg>
+            </div>
+            <div class="ml-3">
+              <h3 class="text-emerald-800 font-medium">Application Submitted Successfully!</h3>
+              <p class="mt-1 text-sm text-emerald-700">We'll review your submission and contact you within 5-7 business days.</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Error Message -->
+        <div v-if="submitError || error" class="mb-12 p-6 bg-red-50 border-l-4 border-red-400 rounded-r-lg">
+          <div class="flex items-center">
+            <div class="flex-shrink-0">
+              <svg class="h-6 w-6 text-red-400" fill="currentColor" viewBox="0 0 20 20">
+                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"/>
+              </svg>
+            </div>
+            <div class="ml-3">
+              <h3 class="text-red-800 font-medium">Submission Error</h3>
+              <p class="mt-1 text-sm text-red-700">{{ submitError || error }}</p>
+            </div>
+          </div>
+        </div>
+
+        <form @submit.prevent="onSubmit" class="space-y-12">
           <!-- Personal Information -->
           <section>
-            <h2 class="font-serif text-xl text-ink mb-6">Personal Information</h2>
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div>
-                <label for="firstName" class="block text-sm font-medium text-ink mb-2">
+            <div class="border-b border-slate-200 pb-6 mb-8">
+              <h2 class="font-serif text-2xl text-ink">Personal Information</h2>
+              <p class="mt-2 text-sm text-ink/60">Tell us about yourself and your contact details.</p>
+            </div>
+            
+            <div class="grid grid-cols-1 gap-8 md:grid-cols-2">
+              <div class="space-y-2">
+                <label for="firstName" class="block text-sm font-semibold text-ink">
                   First Name *
                 </label>
                 <input 
@@ -30,11 +62,13 @@
                   v-model="form.firstName" 
                   type="text" 
                   required 
-                  class="w-full rounded-md border border-slate-300 px-3 py-2 text-sm bg-white focus:ring-2 focus:ring-secondary focus:border-secondary outline-none transition-colors"
+                  class="block w-full rounded-lg border-slate-300 shadow-sm focus:border-primary focus:ring-primary text-ink placeholder:text-ink/40 px-4 py-3"
+                  placeholder="Enter your first name"
                 />
               </div>
-              <div>
-                <label for="lastName" class="block text-sm font-medium text-ink mb-2">
+
+              <div class="space-y-2">
+                <label for="lastName" class="block text-sm font-semibold text-ink">
                   Last Name *
                 </label>
                 <input 
@@ -42,11 +76,13 @@
                   v-model="form.lastName" 
                   type="text" 
                   required 
-                  class="w-full rounded-md border border-slate-300 px-3 py-2 text-sm bg-white focus:ring-2 focus:ring-secondary focus:border-secondary outline-none transition-colors"
+                  class="block w-full rounded-lg border-slate-300 shadow-sm focus:border-primary focus:ring-primary text-ink placeholder:text-ink/40 px-4 py-3"
+                  placeholder="Enter your last name"
                 />
               </div>
-              <div>
-                <label for="email" class="block text-sm font-medium text-ink mb-2">
+
+              <div class="space-y-2">
+                <label for="email" class="block text-sm font-semibold text-ink">
                   Email Address *
                 </label>
                 <input 
@@ -54,18 +90,22 @@
                   v-model="form.email" 
                   type="email" 
                   required 
-                  class="w-full rounded-md border border-slate-300 px-3 py-2 text-sm bg-white focus:ring-2 focus:ring-secondary focus:border-secondary outline-none transition-colors"
+                  class="block w-full rounded-lg border-slate-300 shadow-sm focus:border-primary focus:ring-primary text-ink placeholder:text-ink/40 px-4 py-3"
+                  :placeholder="`your.name@${appConfig.universityDomain}`"
                 />
               </div>
-              <div>
-                <label for="phone" class="block text-sm font-medium text-ink mb-2">
-                  Phone Number
+
+              <div class="space-y-2">
+                <label for="phone" class="block text-sm font-semibold text-ink">
+                  Phone Number *
                 </label>
                 <input 
                   id="phone" 
                   v-model="form.phone" 
                   type="tel" 
-                  class="w-full rounded-md border border-slate-300 px-3 py-2 text-sm bg-white focus:ring-2 focus:ring-secondary focus:border-secondary outline-none transition-colors"
+                  required 
+                  class="block w-full rounded-lg border-slate-300 shadow-sm focus:border-primary focus:ring-primary text-ink placeholder:text-ink/40 px-4 py-3"
+                  placeholder="+233 XX XXX XXXX"
                 />
               </div>
             </div>
@@ -73,21 +113,24 @@
 
           <!-- Academic Information -->
           <section>
-            <h2 class="font-serif text-xl text-ink mb-6">Academic Information</h2>
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div>
-                <label for="program" class="block text-sm font-medium text-ink mb-2">
-                  Program of Study *
+            <div class="border-b border-slate-200 pb-6 mb-8">
+              <h2 class="font-serif text-2xl text-ink">Academic Information</h2>
+              <p class="mt-2 text-sm text-ink/60">Your academic background and program details.</p>
+            </div>
+            
+            <div class="grid grid-cols-1 gap-8 md:grid-cols-2">
+              <div class="space-y-2">
+                <label for="program" class="block text-sm font-semibold text-ink">
+                  Academic Program *
                 </label>
                 <select 
                   id="program" 
                   v-model="form.program" 
                   required 
-                  class="w-full rounded-md border border-slate-300 px-3 py-2 text-sm bg-white focus:ring-2 focus:ring-secondary focus:border-secondary outline-none transition-colors"
+                  class="block w-full rounded-lg border-slate-300 shadow-sm focus:border-primary focus:ring-primary text-ink px-4 py-3"
                 >
-                  <option value="">Select your program</option>
                   <option value="computer-science">Computer Science</option>
-                  <option value="electrical-engineering">Electrical & Electronics Engineering</option>
+                  <option value="electrical-engineering">Electrical Engineering</option>
                   <option value="mechanical-engineering">Mechanical Engineering</option>
                   <option value="business-administration">Business Administration</option>
                   <option value="economics">Economics</option>
@@ -95,304 +138,435 @@
                   <option value="other">Other</option>
                 </select>
               </div>
-              <div>
-                <label for="year" class="block text-sm font-medium text-ink mb-2">
+
+              <div class="space-y-2">
+                <label for="yearOfStudy" class="block text-sm font-semibold text-ink">
                   Year of Study *
                 </label>
                 <select 
-                  id="year" 
-                  v-model="form.year" 
+                  id="yearOfStudy" 
+                  v-model="form.yearOfStudy" 
                   required 
-                  class="w-full rounded-md border border-slate-300 px-3 py-2 text-sm bg-white focus:ring-2 focus:ring-secondary focus:border-secondary outline-none transition-colors"
+                  class="block w-full rounded-lg border-slate-300 shadow-sm focus:border-primary focus:ring-primary text-ink px-4 py-3"
                 >
-                  <option value="">Select year</option>
-                  <option value="1">Year 1</option>
-                  <option value="2">Year 2</option>
-                  <option value="3">Year 3</option>
-                  <option value="4">Year 4</option>
-                  <option value="graduate">Graduate</option>
+                  <option value="year-1">Year 1</option>
+                  <option value="year-2">Year 2</option>
+                  <option value="year-3">Year 3</option>
+                  <option value="year-4">Year 4</option>
+                  <option value="graduate">Graduate Student</option>
                   <option value="faculty">Faculty</option>
                   <option value="staff">Staff</option>
                 </select>
-              </div>
-              <div class="md:col-span-2">
-                <label for="advisor" class="block text-sm font-medium text-ink mb-2">
-                  Research Advisor/Supervisor
-                </label>
-                <input 
-                  id="advisor" 
-                  v-model="form.advisor" 
-                  type="text" 
-                  class="w-full rounded-md border border-slate-300 px-3 py-2 text-sm bg-white focus:ring-2 focus:ring-secondary focus:border-secondary outline-none transition-colors"
-                />
               </div>
             </div>
           </section>
 
           <!-- Research Information -->
           <section>
-            <h2 class="font-serif text-xl text-ink mb-6">Research Information</h2>
-            <div class="space-y-6">
-              <div>
-                <label for="title" class="block text-sm font-medium text-ink mb-2">
-                  Research Project Title *
+            <div class="border-b border-slate-200 pb-6 mb-8">
+              <h2 class="font-serif text-2xl text-ink">Research Information</h2>
+              <p class="mt-2 text-sm text-ink/60">Details about your proposed research project.</p>
+            </div>
+            
+            <div class="space-y-8">
+              <div class="space-y-2">
+                <label for="researchAdvisor" class="block text-sm font-semibold text-ink">
+                  Research Advisor (Optional)
                 </label>
                 <input 
-                  id="title" 
-                  v-model="form.title" 
+                  id="researchAdvisor" 
+                  v-model="form.researchAdvisor" 
                   type="text" 
-                  required 
-                  class="w-full rounded-md border border-slate-300 px-3 py-2 text-sm bg-white focus:ring-2 focus:ring-secondary focus:border-secondary outline-none transition-colors"
+                  class="block w-full rounded-lg border-slate-300 shadow-sm focus:border-primary focus:ring-primary text-ink placeholder:text-ink/40 px-4 py-3"
+                  placeholder="e.g., Dr. Sarah Johnson, Computer Science Department"
                 />
               </div>
-              <div>
-                <label for="category" class="block text-sm font-medium text-ink mb-2">
+
+              <div class="space-y-2">
+                <label for="researchTitle" class="block text-sm font-semibold text-ink">
+                  Research Title *
+                </label>
+                <input 
+                  id="researchTitle" 
+                  v-model="form.researchTitle" 
+                  type="text" 
+                  required 
+                  class="block w-full rounded-lg border-slate-300 shadow-sm focus:border-primary focus:ring-primary text-ink placeholder:text-ink/40 px-4 py-3"
+                  placeholder="e.g., Machine Learning for Agricultural Disease Detection in Ghana"
+                />
+              </div>
+
+              <div class="space-y-2">
+                <label for="researchCategory" class="block text-sm font-semibold text-ink">
                   Research Category *
                 </label>
                 <select 
-                  id="category" 
-                  v-model="form.category" 
+                  id="researchCategory" 
+                  v-model="form.researchCategory" 
                   required 
-                  class="w-full rounded-md border border-slate-300 px-3 py-2 text-sm bg-white focus:ring-2 focus:ring-secondary focus:border-secondary outline-none transition-colors"
+                  class="block w-full rounded-lg border-slate-300 shadow-sm focus:border-primary focus:ring-primary text-ink px-4 py-3"
                 >
-                  <option value="">Select category</option>
-                  <option value="computer-science">Computer Science & Technology</option>
-                  <option value="engineering">Engineering & Innovation</option>
+                  <option value="computer-science">Computer Science</option>
+                  <option value="engineering">Engineering</option>
                   <option value="business">Business & Entrepreneurship</option>
                   <option value="social-sciences">Social Sciences</option>
-                  <option value="humanities">Liberal Arts & Humanities</option>
+                  <option value="humanities">Humanities</option>
                   <option value="interdisciplinary">Interdisciplinary</option>
                   <option value="other">Other</option>
                 </select>
               </div>
-              <div>
-                <label for="abstract" class="block text-sm font-medium text-ink mb-2">
-                  Research Abstract/Summary *
-                </label>
-                <textarea 
-                  id="abstract" 
-                  v-model="form.abstract" 
-                  required 
-                  rows="6" 
-                  placeholder="Provide a brief summary of your research, its objectives, methodology, and key findings..."
-                  class="w-full rounded-md border border-slate-300 px-3 py-2 text-sm bg-white focus:ring-2 focus:ring-secondary focus:border-secondary outline-none transition-colors resize-vertical"
-                ></textarea>
-              </div>
-              <div>
-                <label for="impact" class="block text-sm font-medium text-ink mb-2">
-                  Potential Impact & Significance *
-                </label>
-                <textarea 
-                  id="impact" 
-                  v-model="form.impact" 
-                  required 
-                  rows="4" 
-                  placeholder="Explain how your research contributes to your field and its potential real-world applications..."
-                  class="w-full rounded-md border border-slate-300 px-3 py-2 text-sm bg-white focus:ring-2 focus:ring-secondary focus:border-secondary outline-none transition-colors resize-vertical"
-                ></textarea>
-              </div>
-              <div>
-                <label for="stage" class="block text-sm font-medium text-ink mb-2">
+
+              <div class="space-y-2">
+                <label for="projectStage" class="block text-sm font-semibold text-ink">
                   Project Stage *
                 </label>
                 <select 
-                  id="stage" 
-                  v-model="form.stage" 
+                  id="projectStage" 
+                  v-model="form.projectStage" 
                   required 
-                  class="w-full rounded-md border border-slate-300 px-3 py-2 text-sm bg-white focus:ring-2 focus:ring-secondary focus:border-secondary outline-none transition-colors"
+                  class="block w-full rounded-lg border-slate-300 shadow-sm focus:border-primary focus:ring-primary text-ink px-4 py-3"
                 >
-                  <option value="">Select current stage</option>
-                  <option value="proposal">Proposal/Planning Stage</option>
-                  <option value="ongoing">Ongoing Research</option>
-                  <option value="near-completion">Near Completion</option>
+                  <option value="ideation">Ideation Phase</option>
+                  <option value="research">Research & Planning</option>
+                  <option value="development">Development & Implementation</option>
+                  <option value="testing">Testing & Validation</option>
                   <option value="completed">Completed</option>
-                  <option value="published">Published/Presented</option>
                 </select>
               </div>
             </div>
           </section>
 
-          <!-- Additional Information -->
+          <!-- Research Details -->
           <section>
-            <h2 class="font-serif text-xl text-ink mb-6">Additional Information</h2>
-            <div class="space-y-6">
-              <div>
-                <label for="motivation" class="block text-sm font-medium text-ink mb-2">
-                  Why do you want to be featured?
+            <div class="border-b border-slate-200 pb-6 mb-8">
+              <h2 class="font-serif text-2xl text-ink">Research Details</h2>
+              <p class="mt-2 text-sm text-ink/60">Detailed description of your research project.</p>
+            </div>
+            
+            <div class="space-y-8">
+              <div class="space-y-2">
+                <label for="abstract" class="block text-sm font-semibold text-ink">
+                  Research Abstract *
+                </label>
+                <textarea 
+                  id="abstract" 
+                  v-model="form.abstract" 
+                  required 
+                  rows="6"
+                  class="block w-full rounded-lg border-slate-300 shadow-sm focus:border-primary focus:ring-primary text-ink placeholder:text-ink/40 px-4 py-3"
+                  placeholder="Provide a detailed abstract of your research including objectives, methods, and expected outcomes..."
+                ></textarea>
+              </div>
+
+              <div class="space-y-2">
+                <label for="motivation" class="block text-sm font-semibold text-ink">
+                  Research Motivation *
                 </label>
                 <textarea 
                   id="motivation" 
                   v-model="form.motivation" 
-                  rows="4" 
-                  placeholder="Share your motivation for wanting to be featured in the Ashesi Research Magazine..."
-                  class="w-full rounded-md border border-slate-300 px-3 py-2 text-sm bg-white focus:ring-2 focus:ring-secondary focus:border-secondary outline-none transition-colors resize-vertical"
+                  required 
+                  rows="4"
+                  class="block w-full rounded-lg border-slate-300 shadow-sm focus:border-primary focus:ring-primary text-ink placeholder:text-ink/40 px-4 py-3"
+                  placeholder="What inspired this research? What problem are you trying to solve and why is it important?"
                 ></textarea>
               </div>
-              <div>
-                <label for="materials" class="block text-sm font-medium text-ink mb-2">
-                  Supporting Materials
+
+              <div class="space-y-2">
+                <label for="impact" class="block text-sm font-semibold text-ink">
+                  Expected Impact *
                 </label>
-                <div class="space-y-3">
-                  <div class="text-sm text-ink/70">
-                    Please provide links to any supporting materials (papers, presentations, GitHub repos, etc.):
-                  </div>
-                  <input 
-                    v-model="form.materials" 
-                    type="url" 
-                    placeholder="https://example.com/your-research-paper"
-                    class="w-full rounded-md border border-slate-300 px-3 py-2 text-sm bg-white focus:ring-2 focus:ring-secondary focus:border-secondary outline-none transition-colors"
-                  />
-                </div>
+                <textarea 
+                  id="impact" 
+                  v-model="form.impact" 
+                  required 
+                  rows="4"
+                  class="block w-full rounded-lg border-slate-300 shadow-sm focus:border-primary focus:ring-primary text-ink placeholder:text-ink/40 px-4 py-3"
+                  placeholder="Describe the potential impact of your research on your field, community, or society..."
+                ></textarea>
               </div>
+
+              <div class="space-y-2">
+                <label for="supportingMaterials" class="block text-sm font-semibold text-ink">
+                  Supporting Materials (Optional)
+                </label>
+                <textarea 
+                  id="supportingMaterials" 
+                  v-model="form.supportingMaterials" 
+                  rows="3"
+                  class="block w-full rounded-lg border-slate-300 shadow-sm focus:border-primary focus:ring-primary text-ink placeholder:text-ink/40 px-4 py-3"
+                  placeholder="Provide links to any supporting materials, publications, or portfolio items..."
+                ></textarea>
+              </div>
+            </div>
+          </section>
+
+          <!-- Consent & Agreement -->
+          <section>
+            <div class="border-b border-slate-200 pb-6 mb-8">
+              <h2 class="font-serif text-2xl text-ink">Agreement & Consent</h2>
+              <p class="mt-2 text-sm text-ink/60">Please review and agree to our terms.</p>
+            </div>
+            
+            <div class="space-y-6">
               <div class="flex items-start space-x-3">
                 <input 
                   id="consent" 
                   v-model="form.consent" 
                   type="checkbox" 
                   required
-                  class="mt-1 h-4 w-4 text-secondary border-slate-300 rounded focus:ring-secondary"
+                  class="mt-1 h-5 w-5 rounded border-slate-300 text-primary focus:ring-primary"
                 />
-                <label for="consent" class="text-sm text-ink">
-                  I consent to being contacted for an interview and potentially being featured in the Ashesi Research Magazine. I understand that submission does not guarantee publication. *
-                </label>
+                <div class="text-sm">
+                  <label for="consent" class="font-semibold text-ink">
+                    I agree to the terms and conditions *
+                  </label>
+                  <p class="mt-1 text-ink/60">
+                    I consent to the Ashesi Research Club processing my application and understand that 
+                    my research may be featured in publications, presentations, or other academic materials. 
+                    I commit to upholding the highest standards of academic integrity and ethical research practices.
+                  </p>
+                </div>
               </div>
             </div>
           </section>
 
           <!-- Submit Button -->
-          <div class="pt-6">
-            <button 
-              type="submit" 
-              :disabled="isSubmitting"
-              class="w-full md:w-auto inline-flex items-center justify-center gap-2 rounded-md bg-primary px-8 py-3 text-sm font-medium text-white hover:bg-blue-oxford-800 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-            >
-              <span v-if="isSubmitting">Submitting...</span>
-              <span v-else>Submit Application</span>
-              <svg v-if="!isSubmitting" class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5 21 12l-7.5 7.5M21 12H3"/>
-              </svg>
-            </button>
+          <div class="border-t border-slate-200 pt-8">
+            <div class="flex justify-end">
+              <button 
+                type="submit" 
+                :disabled="loading || !form.consent"
+                class="inline-flex items-center gap-3 rounded-xl bg-gradient-to-r from-primary to-blue-oxford-700 px-8 py-4 text-base font-semibold text-white shadow-lg hover:shadow-xl hover:from-primary/90 hover:to-blue-oxford-800 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed disabled:shadow-none"
+              >
+                <span v-if="loading">Submitting Application...</span>
+                <span v-else>Submit Application</span>
+                <svg v-if="!loading" class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5 21 12l-7.5 7.5M21 12H3"/>
+                </svg>
+                <div v-else class="h-5 w-5">
+                  <svg class="animate-spin h-full w-full" viewBox="0 0 24 24">
+                    <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" fill="none" opacity="0.25"/>
+                    <path fill="currentColor" opacity="0.75" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"/>
+                  </svg>
+                </div>
+              </button>
+            </div>
           </div>
         </form>
       </div>
 
-      <!-- Help Section -->
+      <!-- Information Section -->
       <div class="mt-12 text-center">
-        <div class="bg-slate-50 rounded-lg p-6">
-          <h3 class="font-serif text-lg text-ink mb-2">Need Help?</h3>
+        <div class="bg-slate-50 rounded-xl p-6 border border-slate-200">
+          <h3 class="font-serif text-lg text-ink mb-3">Questions About the Application Process?</h3>
           <p class="text-sm text-ink/70 mb-4">
-            Have questions about the application process or need assistance with your submission?
+            Our research coordinators are here to help guide you through the application process and answer any questions about our programs.
           </p>
-          <a 
-            href="mailto:research@ashesi.edu.gh" 
-            class="inline-flex items-center gap-2 text-sm text-secondary hover:text-vista-blue-600 transition-colors"
-          >
-            Contact our editorial team
-            <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-              <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5 21 12l-7.5 7.5M21 12H3"/>
-            </svg>
-          </a>
+          <div class="flex justify-center space-x-6 text-sm">
+            <a :href="`mailto:${appConfig.contactEmail}`" class="inline-flex items-center gap-2 text-primary hover:text-blue-oxford-800 font-medium transition-colors">
+              <svg class="h-4 w-4" fill="currentColor" viewBox="0 0 20 20">
+                <path d="M2.003 5.884L10 9.882l7.997-3.998A2 2 0 0016 4H4a2 2 0 00-1.997 1.884z"/>
+                <path d="M18 8.118l-8 4-8-4V14a2 2 0 002 2h12a2 2 0 002-2V8.118z"/>
+              </svg>
+              {{ appConfig.contactEmail }}
+            </a>
+            <span class="text-ink/40">|</span>
+            <a :href="`tel:${appConfig.contactPhone.replace(/\s/g, '')}`" class="inline-flex items-center gap-2 text-primary hover:text-blue-oxford-800 font-medium transition-colors">
+              <svg class="h-4 w-4" fill="currentColor" viewBox="0 0 20 20">
+                <path d="M2 3a1 1 0 011-1h2.153a1 1 0 01.986.836l.74 4.435a1 1 0 01-.54 1.06l-1.548.773a11.037 11.037 0 006.105 6.105l.774-1.548a1 1 0 011.059-.54l4.435.74a1 1 0 01.836.986V17a1 1 0 01-1 1h-2C7.82 18 2 12.18 2 5V3z"/>
+              </svg>
+              {{ appConfig.contactPhone }}
+            </a>
+          </div>
         </div>
       </div>
     </div>
   </main>
-  <!-- End Research Feature Application Form -->
 </template>
 
 <script setup lang="ts">
 import { ref, reactive } from 'vue'
+import { useApi, type ApplicationForm as ApiApplicationForm } from '@/composables/useApi'
+import { appConfig } from '@/config/app'
 
-// Form state interface
+const { submitApplication, loading, error, clearError } = useApi()
+
+// Success and error states
+const submitSuccess = ref(false)
+const submitError = ref<string | null>(null)
+
+// Form interface matching the Application schema
 interface ApplicationForm {
+  // Personal Information (Required)
   firstName: string
   lastName: string
   email: string
   phone: string
-  program: string
-  year: string
-  advisor: string
-  title: string
-  category: string
+
+  // Academic Information (Required)
+  program: 'computer-science' | 'electrical-engineering' | 'mechanical-engineering' | 'business-administration' | 'economics' | 'liberal-arts' | 'other'
+  yearOfStudy: 'year-1' | 'year-2' | 'year-3' | 'year-4' | 'graduate' | 'faculty' | 'staff'
+
+  // Research Information
+  researchAdvisor: string
+  researchTitle: string
+  researchCategory: 'computer-science' | 'engineering' | 'business' | 'social-sciences' | 'humanities' | 'interdisciplinary' | 'other'
+
+  // Research Details (Required)
   abstract: string
   impact: string
-  stage: string
+  projectStage: 'ideation' | 'research' | 'development' | 'testing' | 'completed'
   motivation: string
-  materials: string
+
+  // Supporting Information
+  supportingMaterials: string
   consent: boolean
 }
 
-const isSubmitting = ref(false)
+// Form data
 const form = reactive<ApplicationForm>({
+  // Personal Information
   firstName: '',
   lastName: '',
   email: '',
   phone: '',
-  program: '',
-  year: '',
-  advisor: '',
-  title: '',
-  category: '',
+  
+  // Academic Information
+  program: 'computer-science',
+  yearOfStudy: 'year-1',
+  
+  // Research Information
+  researchAdvisor: '',
+  researchTitle: '',
+  researchCategory: 'computer-science',
+  
+  // Research Details
   abstract: '',
   impact: '',
-  stage: '',
+  projectStage: 'ideation',
   motivation: '',
-  materials: '',
+  
+  // Supporting Information
+  supportingMaterials: '',
   consent: false
 })
 
 // Form submission handler
 async function onSubmit() {
-  isSubmitting.value = true
-  
+  // Clear any previous errors
+  clearError()
+  submitError.value = null
+  submitSuccess.value = false
+
   try {
-    // Simulate API call - replace with actual endpoint
-    await new Promise(resolve => setTimeout(resolve, 2000))
+    // Transform form data to match API expectations
+    const applicationData: ApiApplicationForm = {
+      name: `${form.firstName} ${form.lastName}`.trim(),
+      email: form.email,
+      program: form.program === 'other' ? 'computer-science' : form.program as any,
+      yearOfStudy: ['graduate', 'faculty', 'staff'].includes(form.yearOfStudy) ? 'year-4' : form.yearOfStudy as any,
+      researchTopic: form.researchTitle,
+      researchDescription: form.abstract,
+      methodology: 'mixed-methods',
+      collaborationType: 'faculty-collaboration',
+      timeline: '6-12 months',
+      impact: 'national',
+      additionalInfo: [
+        form.phone && `Phone: ${form.phone}`,
+        form.researchAdvisor && `Research Advisor: ${form.researchAdvisor}`,
+        form.researchCategory && `Research Category: ${form.researchCategory}`,
+        form.motivation && `Motivation: ${form.motivation}`,
+        form.impact && `Expected Impact: ${form.impact}`,
+        form.projectStage && `Project Stage: ${form.projectStage}`,
+        form.supportingMaterials && `Supporting Materials: ${form.supportingMaterials}`
+      ].filter(Boolean).join('\n\n')
+    }
     
-    // In a real app, send form data to backend
-    console.log('Form submitted:', form)
+    // Submit to API
+    await submitApplication(applicationData)
     
-    // Show success message
-    alert('Application submitted successfully! We\'ll review your submission and contact you within 5-7 business days.')
+    // Show success state
+    submitSuccess.value = true
     
-    // Reset form - type-safe way
+    // Reset form
     Object.assign(form, {
       firstName: '',
       lastName: '',
       email: '',
       phone: '',
-      program: '',
-      year: '',
-      advisor: '',
-      title: '',
-      category: '',
+      program: 'computer-science',
+      yearOfStudy: 'year-1',
+      researchAdvisor: '',
+      researchTitle: '',
+      researchCategory: 'computer-science',
       abstract: '',
       impact: '',
-      stage: '',
+      projectStage: 'ideation',
       motivation: '',
-      materials: '',
+      supportingMaterials: '',
       consent: false
     })
     
-  } catch (error) {
-    console.error('Submission error:', error)
-    alert('There was an error submitting your application. Please try again.')
-  } finally {
-    isSubmitting.value = false
+  } catch (err) {
+    console.error('Submission error:', err)
+    submitError.value = err instanceof Error ? err.message : 'Failed to submit application'
   }
 }
 </script>
 
 <style scoped>
-/* Additional form-specific styles if needed */
+/* Enhanced form styling with better padding */
+input[type="text"],
+input[type="email"],
+input[type="tel"],
+select,
 textarea {
-  min-height: 100px;
+  transition: all 0.2s ease;
+}
+
+input[type="text"]:focus,
+input[type="email"]:focus,
+input[type="tel"]:focus,
+select:focus,
+textarea:focus {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.1);
+}
+
+textarea {
+  min-height: 120px;
+  resize: vertical;
 }
 
 select {
   background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='m6 8 4 4 4-4'/%3e%3c/svg%3e");
-  background-position: right 0.5rem center;
+  background-position: right 1rem center;
   background-repeat: no-repeat;
   background-size: 1.5em 1.5em;
-  padding-right: 2.5rem;
+  padding-right: 3rem;
+}
+
+input[type="checkbox"] {
+  cursor: pointer;
+}
+
+input[type="checkbox"]:checked {
+  background-color: var(--primary-color);
+  border-color: var(--primary-color);
+}
+
+.bg-gradient-to-b {
+  background-image: linear-gradient(to bottom, var(--tw-gradient-stops));
+}
+
+/* Loading animation improvements */
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+
+.animate-pulse {
+  animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
 }
 </style>

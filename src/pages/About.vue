@@ -19,19 +19,16 @@
           <div>
             <h2 class="font-serif text-2xl text-ink mb-6">Our Mission</h2>
             <p class="text-ink/80 leading-relaxed mb-6">
-              The Ashesi Research Club exists to bridge the gap between academic learning and real-world innovation. We provide a platform for students, faculty, and researchers to collaborate, share knowledge, and push the boundaries of what's possible.
+              To amplify and celebrate student research across all departments by providing a platform highlighting diverse academic contributions.
             </p>
             <p class="text-ink/80 leading-relaxed">
-              Through our magazine, workshops, and research initiatives, we amplify the voices of emerging scholars and celebrate the groundbreaking work happening within our community.
+              The club seeks to broaden recognition beyond traditionally visible fields, fostering appreciation for a broad spectrum of student scholarship.
             </p>
           </div>
           <div>
             <h2 class="font-serif text-2xl text-ink mb-6">Our Vision</h2>
             <p class="text-ink/80 leading-relaxed mb-6">
-              To become the premier research publication in Ghana, showcasing the innovative spirit and academic excellence that defines Ashesi University while inspiring the next generation of African researchers and leaders.
-            </p>
-            <p class="text-ink/80 leading-relaxed">
-              We envision a future where student research contributes meaningfully to solving Africa's most pressing challenges.
+              To create a vibrant research culture at Ashesi where every researcher's work is valued, shared, and inspires innovation, collaboration, and impact across disciplines.
             </p>
           </div>
         </div>
@@ -108,19 +105,31 @@
     <!-- Team Carousel -->
     <section class="py-16 md:py-20 bg-slate-50">
       <div class="mx-auto max-w-6xl px-4">
-        <h2 class="font-serif text-3xl text-center text-ink mb-4">Meet Our Team</h2>
+        <h2 class="font-serif text-3xl text-center text-ink mb-4">Meet Our Executives</h2>
         <p class="text-center text-ink/70 mb-12 max-w-2xl mx-auto">
           Passionate students and faculty dedicated to advancing research culture at Ashesi University
         </p>
         
         <!-- Carousel Container -->
         <div class="relative">
-          <!-- Carousel Wrapper -->
-          <div class="overflow-hidden">
-            <div 
-              class="flex transition-transform duration-500 ease-in-out"
-              :style="{ transform: `translateX(-${currentSlide * (100 / slidesPerView)}%)` }"
-            >
+          <!-- Loading State -->
+          <div v-if="loading" class="text-center py-8">
+            <p class="text-ink/60">Loading team members...</p>
+          </div>
+          
+          <!-- Error State -->
+          <div v-else-if="apiError" class="text-center py-8">
+            <p class="text-red-600">{{ apiError }}</p>
+          </div>
+          
+          <!-- Team Members Carousel -->
+          <div v-else>
+            <!-- Carousel Wrapper -->
+            <div class="overflow-hidden">
+              <div 
+                class="flex transition-transform duration-500 ease-in-out"
+                :style="{ transform: `translateX(-${currentSlide * (100 / slidesPerView)}%)` }"
+              >
               <!-- Team Member Cards -->
               <div 
                 v-for="(member, index) in teamMembers" 
@@ -146,18 +155,14 @@
                         <h3 class="font-serif text-lg text-ink">{{ member.name }}</h3>
                         <p class="text-sm text-primary font-medium">{{ member.role }}</p>
                       </div>
-                      <div class="text-xs text-ink/50">{{ member.year }}</div>
+                      <div class="text-xs text-ink/50">{{ member.yearOfStudy }}</div>
                     </div>
                     
                     <p class="text-sm text-ink/70 leading-relaxed mb-4">{{ member.description }}</p>
                     
                     <div class="flex flex-wrap gap-2">
-                      <span 
-                        v-for="skill in member.skills" 
-                        :key="skill"
-                        class="text-xs px-2 py-1 bg-slate-100 text-ink/70 rounded-full"
-                      >
-                        {{ skill }}
+                      <span class="text-xs px-2 py-1 bg-slate-100 text-ink/70 rounded-full">
+                        {{ member.specialization }}
                       </span>
                     </div>
                   </div>
@@ -165,9 +170,11 @@
               </div>
             </div>
           </div>
+        </div>
           
-          <!-- Navigation Buttons -->
+          <!-- Navigation Buttons (only show when not loading/error) -->
           <button 
+            v-if="!loading && !apiError"
             @click="previousSlide"
             :disabled="currentSlide === 0"
             class="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-4 w-10 h-10 bg-white border border-slate-200 rounded-full flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed shadow-sm hover:shadow-md transition-shadow"
@@ -178,6 +185,7 @@
           </button>
           
           <button 
+            v-if="!loading && !apiError"
             @click="nextSlide"
             :disabled="currentSlide >= maxSlides"
             class="absolute right-0 top-1/2 -translate-y-1/2 translate-x-4 w-10 h-10 bg-white border border-slate-200 rounded-full flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed shadow-sm hover:shadow-md transition-shadow"
@@ -188,8 +196,8 @@
           </button>
         </div>
         
-        <!-- Dots Indicator -->
-        <div class="flex justify-center space-x-2 mt-8">
+        <!-- Dots Indicator (only show when not loading/error) -->
+        <div v-if="!loading && !apiError" class="flex justify-center space-x-2 mt-8">
           <button 
             v-for="dot in totalSlides" 
             :key="dot"
@@ -232,52 +240,24 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted, onUnmounted } from 'vue'
+import { useApi, type TeamMember } from '@/composables/useApi'
 
-// Team members data
-const teamMembers = ref([
-  {
-    name: "Emmanuel Darko",
-    role: "Club President",
-    year: "Year 4",
-    description: "Leading research initiatives in AI and machine learning. Passionate about using technology to solve African challenges.",
-    skills: ["Leadership", "AI/ML", "Strategy"]
-  },
-  {
-    name: "Ama Osei",
-    role: "Editor-in-Chief",
-    year: "Year 3",
-    description: "Overseeing content quality and editorial standards. Specializes in science communication and digital media.",
-    skills: ["Editorial", "Writing", "Communications"]
-  },
-  {
-    name: "Kwame Asante",
-    role: "Research Coordinator",
-    year: "Year 4",
-    description: "Connecting researchers with publication opportunities. Focus on interdisciplinary collaboration and innovation.",
-    skills: ["Research", "Coordination", "Innovation"]
-  },
-  {
-    name: "Akosua Mensah",
-    role: "Design Lead",
-    year: "Year 2",
-    description: "Creating visual identity and user experiences. Passionate about accessible design and brand storytelling.",
-    skills: ["Design", "UX/UI", "Branding"]
-  },
-  {
-    name: "Abdul Rahman",
-    role: "Technical Director",
-    year: "Year 3",
-    description: "Managing our digital infrastructure and developing tools for research publication and collaboration.",
-    skills: ["Development", "Systems", "DevOps"]
-  },
-  {
-    name: "Grace Amoah",
-    role: "Community Manager",
-    year: "Year 2",
-    description: "Building relationships with researchers and managing our social media presence and outreach programs.",
-    skills: ["Community", "Social Media", "Outreach"]
+const { getTeamMembers, loading, error } = useApi()
+
+// Team members data - now loaded from API
+const teamMembers = ref<TeamMember[]>([])
+const apiError = ref<string | null>(null)
+
+// Load team members on mount
+onMounted(async () => {
+  try {
+    teamMembers.value = await getTeamMembers()
+  } catch (err) {
+    apiError.value = err instanceof Error ? err.message : 'Failed to load team members'
+    // Fallback to empty array or show error message
+    console.error('Failed to load team members:', err)
   }
-])
+})
 
 // Carousel state
 const currentSlide = ref(0)
