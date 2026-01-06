@@ -17,6 +17,9 @@
     "dev-with-static": "npm run generate-data && vite"
   },
   "dependencies": {
+    "@portabletext/vue": "^1.0.14",
+    "@sanity/client": "^7.13.2",
+    "@sanity/image-url": "^2.0.2",
     "marked": "^17.0.0",
     "vue": "^3.5.17"
   },

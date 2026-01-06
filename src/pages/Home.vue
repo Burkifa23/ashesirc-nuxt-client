@@ -74,6 +74,29 @@
       </div>
     </section>
 
+    <!-- List of remaining articles (only show if there are any) -->
+    <section v-if="remainingCount > 0" id="articles-list" class="bg-white">
+      <div class="mx-auto max-w-6xl px-4 py-12">
+        <div class="mx-auto max-w-4xl">
+          <h2 class="font-serif text-2xl text-ink mb-6">Latest Articles</h2>
+
+          <div class="grid grid-cols-1 gap-6">
+            <div v-for="a in remainingArticles" :key="a.documentId || a.id" class="mx-auto w-full max-w-4xl">
+              <ArticleCard
+                :title="a.title"
+                :description="a.excerpt"
+                :author="a.author ? `${a.author.firstName} ${a.author.lastName}` : 'Anonymous'"
+                :date="new Date(a.publishedDate).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })"
+                :tag="a.tags?.[0]?.name || a.category"
+                :image="a.featuredImage?.url || null"
+                :link="`/article/${a.slug}`"
+              />
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
     <!-- Magazine Subscription -->
     <NewsletterSignup />
   </main>
@@ -85,6 +108,8 @@ import { useApi, type Article } from '@/composables/useApi'
 import TopicBlock from '@/components/TopicBlock.vue'
 import NewsletterSignup from '@/components/NewsletterSignup.vue'
 import ArticleCard from '@/components/ArticleCard.vue'
+import { fetchFeaturedArticle, fetchArticlesList } from '@/lib/sanity'
+import { appConfig } from '@/config/app'
 
 // NOTE: keep the api composable so existing loading/error bindings still work in the template,
 // but DO NOT call the network methods here — we want a minimal change that avoids runtime API calls.
@@ -103,7 +128,109 @@ onMounted(async () => {
       document.documentElement.style.scrollBehavior = 'smooth'
     }
 
-    // Keep latest articles empty (no runtime fetch)
+    // If Sanity is configured, fetch articles from CMS and select featured
+    if (appConfig.sanityProjectId) {
+      try {
+        const featuredDoc = await fetchFeaturedArticle()
+        if (featuredDoc) {
+          featuredArticle.value = {
+            id: featuredDoc._id || 0,
+            documentId: featuredDoc._id || 'sanity-'+(featuredDoc._id||'0'),
+            title: featuredDoc.title || 'Untitled',
+            excerpt: featuredDoc.excerpt || featuredDoc.description || '',
+            content: featuredDoc.content || featuredDoc.body || '',
+            slug: featuredDoc.slug?.current || '',
+            category: featuredDoc.category || 'interdisciplinary',
+            status: 'published',
+            featured: !!featuredDoc.featured,
+            readTime: featuredDoc.readTime || 5,
+            publishedDate: featuredDoc.publishedDate || featuredDoc._createdAt || new Date().toISOString(),
+            viewCount: 0,
+            createdAt: featuredDoc._createdAt || new Date().toISOString(),
+            updatedAt: featuredDoc._updatedAt || new Date().toISOString(),
+            publishedAt: featuredDoc.publishedDate || new Date().toISOString(),
+            locale: featuredDoc.lang || 'en',
+            author: featuredDoc.author ? {
+              id: 0,
+              documentId: featuredDoc.author._id || featuredDoc.author._ref || 'author',
+              firstName: featuredDoc.author.firstName || featuredDoc.author.name || '',
+              lastName: featuredDoc.author.lastName || '',
+              email: '',
+              program: 'other',
+              yearOfStudy: 'faculty',
+              researchAdvisor: '',
+              bio: '',
+              researchInterests: '',
+              status: 'active',
+              achievements: '',
+              createdAt: new Date().toISOString(),
+              updatedAt: new Date().toISOString(),
+              publishedAt: new Date().toISOString(),
+              locale: 'en'
+            } : null,
+            tags: Array.isArray(featuredDoc.tags) ? featuredDoc.tags.map((t:any)=>({ id: t._id, name: t.title || t.slug })) : [],
+            featuredImage: featuredDoc.mainImage ? { url: featuredDoc.mainImage.asset?.url, caption: featuredDoc.mainImage.caption } : null,
+            seo: featuredDoc.seo || null,
+            pdfFile: null,
+            createdBy: null,
+            updatedBy: null,
+            localizations: []
+          }
+        }
+
+        // Also fetch a list of latest articles to populate other sections
+        const list = await fetchArticlesList(20)
+        articles.value = Array.isArray(list) ? list.map((doc:any) => ({
+          id: doc._id || 0,
+          documentId: doc._id || 'sanity-'+(doc._id||'0'),
+          title: doc.title || 'Untitled',
+          excerpt: doc.excerpt || doc.description || '',
+          content: doc.content || doc.body || '',
+          slug: doc.slug?.current || '',
+          category: doc.category || 'interdisciplinary',
+          status: 'published',
+          featured: !!doc.featured,
+          readTime: doc.readTime || 5,
+          publishedDate: doc.publishedDate || doc._createdAt || new Date().toISOString(),
+          viewCount: 0,
+          createdAt: doc._createdAt || new Date().toISOString(),
+          updatedAt: doc._updatedAt || new Date().toISOString(),
+          publishedAt: doc.publishedDate || new Date().toISOString(),
+          locale: doc.lang || 'en',
+          author: doc.author ? {
+            id: 0,
+            documentId: doc.author._id || doc.author._ref || 'author',
+            firstName: doc.author.firstName || doc.author.name || '',
+            lastName: doc.author.lastName || '',
+            email: '',
+            program: 'other',
+            yearOfStudy: 'faculty',
+            researchAdvisor: '',
+            bio: '',
+            researchInterests: '',
+            status: 'active',
+            achievements: '',
+            createdAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString(),
+            publishedAt: new Date().toISOString(),
+            locale: 'en'
+          } : null,
+          tags: Array.isArray(doc.tags) ? doc.tags.map((t:any)=>({ id: t._id, name: t.title || t.slug })) : [],
+          featuredImage: doc.mainImage ? { url: doc.mainImage.asset?.url, caption: doc.mainImage.caption } : null,
+          seo: doc.seo || null,
+          pdfFile: null,
+          createdBy: null,
+          updatedBy: null,
+          localizations: []
+        })) : []
+
+        return
+      } catch (e) {
+        console.warn('Sanity fetch failed, falling back to local featured article', e)
+      }
+    }
+
+    // Keep latest articles empty (no runtime fetch) if CMS not available
     articles.value = []
 
     // Minimal hardcoded featured article for the Home featured section
@@ -272,6 +399,12 @@ const featuredDate = computed(() => {
 })
 const featuredReadTime = computed(() => featuredArticle.value?.readTime || 0)
 const featuredSlug = computed(() => featuredArticle.value?.slug || '')
+
+const remainingArticles = computed(() => {
+  if (!featuredArticle.value) return articles.value
+  return articles.value.filter(a => a.slug !== featuredArticle.value?.slug)
+})
+const remainingCount = computed(() => remainingArticles.value.length)
 </script>
 
 <style>

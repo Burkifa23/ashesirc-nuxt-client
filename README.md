@@ -72,4 +72,28 @@ Uses TailwindCSS utility classes. Custom styles in `src/assets/main.css`.
 2. **New Page**: Create in `src/pages/` and update router
 3. **New Component**: Add to `src/components/`
 
+## Sanity CMS (optional)
+
+This project supports fetching articles from Sanity as a fallback to the existing API. Sanity integration is optional and disabled by default. To enable:
+
+1. Install packages:
+
+   npm install @sanity/client @sanity/image-url @portabletext/vue
+
+2. Add environment variables (Vercel or local `.env`):
+
+   VITE_SANITY_PROJECT_ID=yourProjectId
+   VITE_SANITY_DATASET=production
+   VITE_SANITY_API_VERSION=2021-10-21
+   VITE_SANITY_USE_CDN=true
+   VITE_SANITY_READ_TOKEN=yourOptionalReadToken
+
+3. The app exposes `src/lib/sanity.ts` which exports `sanityClient`, `urlFor`, and `fetchBySlug`.
+
+4. `src/pages/Article.vue` will attempt to fetch from Sanity when `VITE_SANITY_PROJECT_ID` is present. It falls back to the previous API behavior if Sanity isn't configured or the request fails.
+
+Notes:
+- Portable Text rendering requires `@portabletext/vue`. If your Sanity `body` is Portable Text, replace the `v-html` rendering with the PortableText component.
+- Keep your read token private when enabling preview/drafts.
+
 Built for the Ashesi University research community.

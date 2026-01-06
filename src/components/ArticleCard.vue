@@ -1,5 +1,5 @@
 <template>
-  <article class="group grid grid-cols-1 gap-3 md:grid-cols-5">
+  <article class="group grid grid-cols-1 gap-3 md:grid-cols-5 items-center">
     <div class="aspect-[3/2] overflow-hidden rounded bg-slate-100 md:col-span-2">
       <img v-if="image" :src="image" :alt="title" class="h-full w-full object-cover transition-transform duration-300 group-hover:scale-[1.02]" />
       <div v-else class="h-full w-full bg-gradient-to-br from-slate-100 to-slate-200" />

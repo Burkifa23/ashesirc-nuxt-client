@@ -27,6 +27,13 @@ export interface AppConfig {
 
     // SheetDB / Applications endpoint (optional)
     sheetdbApplicationUrl: string
+
+    // Sanity configuration (optional)
+    sanityProjectId: string
+    sanityDataset: string
+    sanityApiVersion: string
+    sanityUseCdn: boolean
+    sanityReadToken: string
 }
 
 // Helper function to get environment variable with fallback
@@ -68,6 +75,13 @@ export const appConfig: AppConfig = {
 
     // SheetDB Applications endpoint (optional - empty string disables network calls)
     sheetdbApplicationUrl: getEnvVar('VITE_SHEETDB_APPLICATION_URL', ''),
+
+    // Sanity configuration
+    sanityProjectId: getEnvVar('VITE_SANITY_PROJECT_ID', ''),
+    sanityDataset: getEnvVar('VITE_SANITY_DATASET', 'production'),
+    sanityApiVersion: getEnvVar('VITE_SANITY_API_VERSION', '2021-10-21'),
+    sanityUseCdn: getEnvVar('VITE_SANITY_USE_CDN', 'true') === 'true',
+    sanityReadToken: getEnvVar('VITE_SANITY_READ_TOKEN', ''),
 }
 
 // Utility functions for common configuration checks
