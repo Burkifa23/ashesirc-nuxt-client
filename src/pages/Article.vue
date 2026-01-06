@@ -112,6 +112,56 @@ const article = ref<Article | null>(null)
 const relatedArticles = ref<Article[]>([])
 const progress = ref(0)
 
+// Map a Sanity document to the local Article shape
+const mapSanityDocToArticle = (doc: any): Article => {
+  return {
+    id: doc._id || 0,
+    documentId: doc._id || `sanity-${doc._id || '0'}`,
+    title: doc.title || doc.name || 'Untitled',
+    excerpt: doc.excerpt || doc.description || '',
+    content: doc.content || doc.body || '',
+    slug: doc.slug?.current || doc.slug || '',
+    category: doc.category || 'interdisciplinary',
+    status: 'published',
+    featured: !!doc.featured,
+    readTime: doc.readTime || 5,
+    publishedDate: doc.publishedDate || doc._createdAt || new Date().toISOString(),
+    viewCount: 0,
+    collaborators: (doc.collaborators as any) || null,
+    fundingSource: doc.fundingSource || null,
+    createdAt: doc._createdAt || new Date().toISOString(),
+    updatedAt: doc._updatedAt || new Date().toISOString(),
+    publishedAt: doc.publishedDate || new Date().toISOString(),
+    locale: doc.lang || 'en',
+    author: doc.author ? {
+      id: 0,
+      documentId: doc.author._id || doc.author._ref || 'author',
+      firstName: doc.author.firstName || doc.author.name || '',
+      lastName: doc.author.lastName || '',
+      email: doc.author.email || '',
+      phone: doc.author.phone || '',
+      program: (doc.author.program as any) || 'other',
+      yearOfStudy: (doc.author.yearOfStudy as any) || 'faculty',
+      researchAdvisor: doc.author.researchAdvisor || '',
+      bio: doc.author.bio || '',
+      researchInterests: doc.author.researchInterests || '',
+      status: 'active',
+      achievements: doc.author.achievements || '',
+      createdAt: doc.author._createdAt || new Date().toISOString(),
+      updatedAt: doc.author._updatedAt || new Date().toISOString(),
+      publishedAt: doc.author.publishedAt || new Date().toISOString(),
+      locale: doc.author.lang || 'en'
+    } : null,
+    tags: Array.isArray(doc.tags) ? doc.tags.map((t:any) => ({ id: t._id || t._ref || 0, documentId: t._id || t._ref || '', name: t.title || t.name || t.slug || '', slug: t.slug?.current || t.slug || '', color: t.color || '', description: t.description || '', createdAt: t._createdAt || new Date().toISOString(), updatedAt: t._updatedAt || new Date().toISOString(), publishedAt: t.publishedAt || new Date().toISOString(), locale: t.lang || 'en' })) : [],
+    featuredImage: doc.mainImage ? { url: doc.mainImage.asset?.url || '', caption: doc.mainImage.caption || '' } : null,
+    seo: doc.seo || null,
+    pdfFile: doc.pdfFile || null,
+    createdBy: doc.createdBy || null,
+    updatedBy: doc.updatedBy || null,
+    localizations: doc.localizations || []
+  }
+}
+
 // Get article slug from URL path
 const articleSlug = computed(() => {
   const path = window.location.pathname
@@ -125,144 +175,41 @@ const parsedContent = computed(() => {
 })
 
 onMounted(async () => {
+  console.log('Article page mounted — slug=', articleSlug.value, 'sanityProjectId=', appConfig.sanityProjectId)
   try {
-      // Try Sanity first for every slug (including 'from-curiosity-to-impact'). If not configured or not found, fall back to original API.
-      if (appConfig.sanityProjectId) {
-        try {
-          const doc = await fetchBySlug(articleSlug.value)
-          if (doc) {
-            // map Sanity fields to local Article shape conservatively (same as previous mapping)
-            article.value = {
-              id: doc._id || 0,
-              documentId: doc._id || 'sanity-'+(doc._id||'0'),
-              title: doc.title || doc.headline || 'Untitled',
-              excerpt: doc.excerpt || doc.description || '',
-              // keep Portable Text as an array when provided (render with PortableText), otherwise fallback to plain/body
-              content: doc.content || doc.body || '',
-              slug: doc.slug?.current || articleSlug.value,
-              category: doc.category || 'interdisciplinary',
-              status: 'published',
-              featured: !!doc.featured,
-              readTime: doc.readTime || 5,
-              publishedDate: doc.publishedAt || doc._createdAt || new Date().toISOString(),
-              viewCount: 0,
-              createdAt: doc._createdAt || new Date().toISOString(),
-              updatedAt: doc._updatedAt || new Date().toISOString(),
-              publishedAt: doc.publishedAt || new Date().toISOString(),
-              locale: doc.lang || 'en',
-              author: doc.author ? (() => {
-                // Prefer explicit firstName/lastName from researcher type if present
-                const docId = doc.author._id || doc.author._ref || 'author'
-                let first = ''
-                let last = ''
-                if (doc.author.firstName || doc.author.lastName) {
-                  first = doc.author.firstName || ''
-                  last = doc.author.lastName || ''
-                } else {
-                  // Fallback to a single `name` or `title` field if available
-                  const rawName = (doc.author && (doc.author.name || doc.author.title)) || ''
-                  const parts = rawName.trim() ? rawName.trim().split(/\s+/) : []
-                  first = parts.length ? parts[0] : ''
-                  last = parts.length > 1 ? parts.slice(1).join(' ') : ''
-                }
-                return {
-                  id: 0,
-                  documentId: docId,
-                  firstName: first,
-                  lastName: last,
-                  email: '',
-                  program: 'computer-science',
-                  yearOfStudy: 'faculty',
-                  researchAdvisor: '',
-                  bio: '',
-                  researchInterests: '',
-                  status: 'active',
-                  achievements: '',
-                  createdAt: new Date().toISOString(),
-                  updatedAt: new Date().toISOString(),
-                  publishedAt: new Date().toISOString(),
-                  locale: 'en'
-                }
-              })() : null,
-              tags: Array.isArray(doc.tags) ? doc.tags.map((t:any, i:number) => ({
-                id: t._id || t._ref || i,
-                name: (t && (t.title || t.slug || t._ref || t._id)) || `tag-${i}`
-              })) : [],
-              featuredImage: doc.mainImage ? { url: doc.mainImage.asset?.url, caption: doc.mainImage.caption } : null,
-              seo: doc.seo || null,
-              pdfFile: null,
-              createdBy: null,
-              updatedBy: null,
-              localizations: []
-            } as Article
+    if (appConfig.sanityProjectId) {
+      try {
+        const doc = await fetchBySlug(articleSlug.value)
+        console.log('fetchBySlug result', doc)
+        if (doc) {
+          article.value = mapSanityDocToArticle(doc)
 
-            // Fetch related articles (Sanity) by same category — do not call legacy API
-            try {
-              const list = await fetchArticlesList(8)
-              if (Array.isArray(list)) {
-                relatedArticles.value = list
-                   .map((r:any) => ({
-                     id: r._id || 0,
-                     documentId: r._id || 'sanity-'+(r._id||'0'),
-                     title: r.title || 'Untitled',
-                     excerpt: r.excerpt || r.description || '',
-                     content: r.content || r.body || '',
-                     slug: r.slug?.current || '',
-                     category: r.category || 'interdisciplinary',
-                     status: 'published',
-                     featured: !!r.featured,
-                     readTime: r.readTime || 5,
-                     publishedDate: r.publishedDate || r._createdAt || new Date().toISOString(),
-                     viewCount: 0,
-                     createdAt: r._createdAt || new Date().toISOString(),
-                     updatedAt: r._updatedAt || new Date().toISOString(),
-                     publishedAt: r.publishedDate || new Date().toISOString(),
-                     locale: r.lang || 'en',
-                     author: r.author ? {
-                       id: 0,
-                       documentId: r.author._id || r.author._ref || 'author',
-                       firstName: r.author.firstName || r.author.name || '',
-                       lastName: r.author.lastName || '',
-                       email: '',
-                       program: 'other',
-                       yearOfStudy: 'faculty',
-                       researchAdvisor: '',
-                       bio: '',
-                       researchInterests: '',
-                       status: 'active',
-                       achievements: '',
-                       createdAt: new Date().toISOString(),
-                       updatedAt: new Date().toISOString(),
-                       publishedAt: new Date().toISOString(),
-                       locale: 'en'
-                     } : null,
-                     tags: Array.isArray(r.tags) ? r.tags.map((t:any)=>({ id: t._id, name: t.title || t.slug })) : [],
-                     featuredImage: r.mainImage ? { url: r.mainImage.asset?.url, caption: r.mainImage.caption } : null,
-                   }))
-                   .filter(a => a.slug !== article.value!.slug && a.category === article.value!.category) as Article[]
-              }
-            } catch (relErr) {
-              console.warn('Failed to fetch related articles from Sanity', relErr)
-            }
+           try {
+             const list = await fetchArticlesList(8)
+             console.log('fetchArticlesList count', Array.isArray(list) ? list.length : 0)
+             if (Array.isArray(list)) {
+              relatedArticles.value = list.map((r:any) => mapSanityDocToArticle(r))
+             }
+           } catch (relErr) {
+             console.warn('Failed to fetch related articles from Sanity', relErr)
+           }
 
-            return
-          }
-        } catch (e) {
-          console.warn('Sanity fetch failed for slug, not falling back to legacy API', e)
-        }
-      }
-
-      // If we reach here, no Sanity document was found — show error
-      pageError.value = 'Article not found'
-      article.value = null
-      } catch (err) {
-       console.error('Error fetching article:', err)
-       pageError.value = (err instanceof Error && err.message) ? err.message : 'Error fetching article'
+           return
+         }
+       } catch (e) {
+         console.warn('Sanity fetch failed for slug, not falling back to legacy API', e)
        }
+     }
 
-  // Setup scroll progress
-  updateProgress()
-  window.addEventListener('scroll', updateProgress, { passive: true })
+     pageError.value = 'Article not found or Sanity not configured'
+     article.value = null
+   } catch (err) {
+     console.error('Error fetching article:', err)
+     pageError.value = (err instanceof Error && err.message) ? err.message : 'Error fetching article'
+   }
+
+   updateProgress()
+   window.addEventListener('scroll', updateProgress, { passive: true })
 })
 
 onUnmounted(() => {

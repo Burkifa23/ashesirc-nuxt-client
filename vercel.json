@@ -3,6 +3,10 @@
         {
             "source": "/((?!.*\\.).*)",
             "destination": "/index.html"
+        },
+        {
+            "source": "/article/:slug*",
+            "destination": "/index.html"
         }
     ]
 }
