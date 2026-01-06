@@ -20,14 +20,14 @@
     </div>
 
     <!-- Error State -->
-    <div v-else-if="error" class="mx-auto max-w-3xl px-4 pt-20 text-center">
+    <div v-else-if="pageError" class="mx-auto max-w-3xl px-4 pt-20 text-center">
       <div class="text-red-600 mb-4">
         <svg class="w-16 h-16 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.732-.833-2.464 0L4.35 15.5c-.77.833.192 2.5 1.732 2.5z"/>
         </svg>
       </div>
       <h1 class="font-serif text-2xl text-ink mb-4">Article Not Found</h1>
-      <p class="text-ink/70 mb-6">{{ error }}</p>
+      <p class="text-ink/70 mb-6">{{ pageError }}</p>
       <a href="/" class="text-secondary hover:text-vista-blue-600 font-medium">← Back to Home</a>
     </div>
 
@@ -101,10 +101,11 @@ import { useApi } from '@/composables/useApi'
 import { useMarkdown } from '@/composables/useMarkdown'
 import type { Article } from '@/composables/useApi'
 import { appConfig } from '@/config/app'
-import { fetchBySlug } from '@/lib/sanity'
+import { fetchBySlug, fetchArticlesList } from '@/lib/sanity'
 import { PortableText } from '@portabletext/vue'
 
-const { getArticleBySlug, getArticles, loading, error } = useApi()
+const { loading } = useApi()
+const pageError = ref<string | null>(null)
 const { parseMarkdown } = useMarkdown()
 
 const article = ref<Article | null>(null)
@@ -195,32 +196,69 @@ onMounted(async () => {
               localizations: []
             } as Article
 
-            relatedArticles.value = []
+            // Fetch related articles (Sanity) by same category — do not call legacy API
+            try {
+              const list = await fetchArticlesList(8)
+              if (Array.isArray(list)) {
+                relatedArticles.value = list
+                   .map((r:any) => ({
+                     id: r._id || 0,
+                     documentId: r._id || 'sanity-'+(r._id||'0'),
+                     title: r.title || 'Untitled',
+                     excerpt: r.excerpt || r.description || '',
+                     content: r.content || r.body || '',
+                     slug: r.slug?.current || '',
+                     category: r.category || 'interdisciplinary',
+                     status: 'published',
+                     featured: !!r.featured,
+                     readTime: r.readTime || 5,
+                     publishedDate: r.publishedDate || r._createdAt || new Date().toISOString(),
+                     viewCount: 0,
+                     createdAt: r._createdAt || new Date().toISOString(),
+                     updatedAt: r._updatedAt || new Date().toISOString(),
+                     publishedAt: r.publishedDate || new Date().toISOString(),
+                     locale: r.lang || 'en',
+                     author: r.author ? {
+                       id: 0,
+                       documentId: r.author._id || r.author._ref || 'author',
+                       firstName: r.author.firstName || r.author.name || '',
+                       lastName: r.author.lastName || '',
+                       email: '',
+                       program: 'other',
+                       yearOfStudy: 'faculty',
+                       researchAdvisor: '',
+                       bio: '',
+                       researchInterests: '',
+                       status: 'active',
+                       achievements: '',
+                       createdAt: new Date().toISOString(),
+                       updatedAt: new Date().toISOString(),
+                       publishedAt: new Date().toISOString(),
+                       locale: 'en'
+                     } : null,
+                     tags: Array.isArray(r.tags) ? r.tags.map((t:any)=>({ id: t._id, name: t.title || t.slug })) : [],
+                     featuredImage: r.mainImage ? { url: r.mainImage.asset?.url, caption: r.mainImage.caption } : null,
+                   }))
+                   .filter(a => a.slug !== article.value!.slug && a.category === article.value!.category) as Article[]
+              }
+            } catch (relErr) {
+              console.warn('Failed to fetch related articles from Sanity', relErr)
+            }
+
             return
           }
         } catch (e) {
-          console.warn('Sanity fetch failed, falling back to original API', e)
+          console.warn('Sanity fetch failed for slug, not falling back to legacy API', e)
         }
       }
 
-      // original remote-fetch behavior for other slugs
-      if (articleSlug.value) {
-        article.value = await getArticleBySlug(articleSlug.value)
-        
-        // Fetch related articles from the same category
-        if (article.value) {
-          const related = await getArticles({ 
-            category: article.value.category, 
-            limit: 4 
-          })
-          
-          // Filter out current article from related articles
-          relatedArticles.value = related.filter(a => a.id !== article.value!.id)
-        }
-      }
-     } catch (err) {
+      // If we reach here, no Sanity document was found — show error
+      pageError.value = 'Article not found'
+      article.value = null
+      } catch (err) {
        console.error('Error fetching article:', err)
-     }
+       pageError.value = (err instanceof Error && err.message) ? err.message : 'Error fetching article'
+       }
 
   // Setup scroll progress
   updateProgress()

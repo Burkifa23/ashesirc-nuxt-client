@@ -1,9 +1,6 @@
 import { ref, computed } from 'vue'
 import { appConfig } from '@/config/app'
 
-// Base API configuration from environment variables
-const API_BASE_URL = appConfig.apiBaseUrl
-
 // Common interfaces based on your Strapi schema (updated to match actual API response)
 export interface Tag {
     id: number
@@ -113,220 +110,37 @@ export interface ApplicationFormState extends ApplicationForm {
     submitSuccess: boolean
 }
 
-// API utility functions
-const apiRequest = async <T>(endpoint: string, options: RequestInit = {}): Promise<T> => {
-    const url = `${API_BASE_URL}${endpoint}`
-
-    try {
-        const response = await fetch(url, {
-            headers: {
-                'Content-Type': 'application/json',
-                ...options.headers,
-            },
-            ...options,
-        })
-
-        if (!response.ok) {
-            throw new Error(`API Error: ${response.status} ${response.statusText}`)
-        }
-
-        return await response.json()
-    } catch (error) {
-        console.error(`API request failed for ${endpoint}:`, error)
-        throw error
-    }
-}
-
+// Remove legacy apiRequest and Strapi methods. Provide only sheetdb-backed write methods and client state.
 export const useApi = () => {
     const loading = ref(false)
     const error = ref<string | null>(null)
 
-    // Clear error state
-    const clearError = () => {
-        error.value = null
-    }
+    const clearError = () => { error.value = null }
 
-    // Articles API
-    const getArticles = async (options: {
-        featured?: boolean
-        category?: string
-        populate?: boolean
-        limit?: number
-        page?: number
-    } = {}) => {
-        loading.value = true
-        error.value = null
-
-        try {
-            let endpoint = '/articles'
-            const params = new URLSearchParams()
-
-            if (options.featured) {
-                params.append('filters[featured][$eq]', 'true')
-            }
-            if (options.category) {
-                params.append('filters[category][$eq]', options.category)
-            }
-            if (options.populate) {
-                params.append('populate', '*')
-            }
-            if (options.limit) {
-                params.append('pagination[pageSize]', options.limit.toString())
-            }
-            if (options.page) {
-                params.append('pagination[page]', options.page.toString())
-            }
-
-            // Always get published articles
-            params.append('filters[status][$eq]', 'published')
-            params.append('sort[0]', 'publishedDate:desc')
-
-            if (params.toString()) {
-                endpoint += `?${params.toString()}`
-            }
-
-            const response = await apiRequest<Article[]>(endpoint)
-            return response
-        } catch (err) {
-            error.value = err instanceof Error ? err.message : 'Failed to fetch articles'
-            throw err
-        } finally {
-            loading.value = false
-        }
-    }
-
-    const getArticleBySlug = async (slug: string) => {
-        loading.value = true
-        error.value = null
-
-        try {
-            const endpoint = `/articles?filters[slug][$eq]=${slug}&populate=*`
-            const response = await apiRequest<Article[]>(endpoint)
-
-            if (response.length === 0) {
-                throw new Error('Article not found')
-            }
-
-            return response[0]
-        } catch (err) {
-            error.value = err instanceof Error ? err.message : 'Failed to fetch article'
-            throw err
-        } finally {
-            loading.value = false
-        }
-    }
-
-    // Team Members API
-    const getTeamMembers = async () => {
-        loading.value = true
-        error.value = null
-
-        try {
-            const endpoint = '/team-members?filters[isActive][$eq]=true&sort[0]=order:asc'
-            const response = await apiRequest<TeamMember[]>(endpoint)
-            return response
-        } catch (err) {
-            error.value = err instanceof Error ? err.message : 'Failed to fetch team members'
-            throw err
-        } finally {
-            loading.value = false
-        }
-    }
-
-    // Researchers API  
-    const getResearchers = async (options: {
-        status?: 'active' | 'alumni' | 'inactive'
-        program?: string
-        limit?: number
-    } = {}) => {
-        loading.value = true
-        error.value = null
-
-        try {
-            let endpoint = '/researchers'
-            const params = new URLSearchParams()
-
-            if (options.status) {
-                params.append('filters[status][$eq]', options.status)
-            }
-            if (options.program) {
-                params.append('filters[program][$eq]', options.program)
-            }
-            if (options.limit) {
-                params.append('pagination[pageSize]', options.limit.toString())
-            }
-
-            if (params.toString()) {
-                endpoint += `?${params.toString()}`
-            }
-
-            const response = await apiRequest<Researcher[]>(endpoint)
-            return response
-        } catch (err) {
-            error.value = err instanceof Error ? err.message : 'Failed to fetch researchers'
-            throw err
-        } finally {
-            loading.value = false
-        }
-    }
-
-    // Tags API
-    const getTags = async () => {
-        loading.value = true
-        error.value = null
-
-        try {
-            const response = await apiRequest<Tag[]>('/tags')
-            return response
-        } catch (err) {
-            error.value = err instanceof Error ? err.message : 'Failed to fetch tags'
-            throw err
-        } finally {
-            loading.value = false
-        }
-    }
-
-    // Newsletter subscription
+    // Newsletter subscription (SheetDB-only)
     const subscribeNewsletter = async (email: string) => {
         loading.value = true
         error.value = null
-
         try {
-            // If a SheetDB newsletter URL is configured, use it
-            if (appConfig.sheetdbNewsletterUrl) {
-                const payload = {
-                    data: [
-                        {
-                            id: 'INCREMENT',
-                            email,
-                        },
-                    ],
-                }
-
-                const res = await fetch(appConfig.sheetdbNewsletterUrl, {
-                    method: 'POST',
-                    headers: {
-                        Accept: 'application/json',
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify(payload),
-                })
-
-                if (!res.ok) {
-                    const txt = await res.text()
-                    throw new Error(`SheetDB Error: ${res.status} ${txt}`)
-                }
-
-                return true
+            if (!appConfig.sheetdbNewsletterUrl) {
+                throw new Error('Newsletter service not configured')
             }
 
-            // Fallback to existing API route if SheetDB not configured
-            await apiRequest('/newsletter-subscribers', {
+            const payload = {
+                data: [{ id: 'INCREMENT', email }]
+            }
+
+            const res = await fetch(appConfig.sheetdbNewsletterUrl, {
                 method: 'POST',
-                body: JSON.stringify({
-                    data: { email, isActive: true }
-                })
+                headers: { Accept: 'application/json', 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload),
             })
+
+            if (!res.ok) {
+                const txt = await res.text()
+                throw new Error(`SheetDB Error: ${res.status} ${txt}`)
+            }
+
             return true
         } catch (err) {
             error.value = err instanceof Error ? err.message : 'Failed to subscribe to newsletter'
@@ -336,56 +150,43 @@ export const useApi = () => {
         }
     }
 
-    // Application submission
+    // Application submission (SheetDB-only)
     const submitApplication = async (applicationData: ApplicationForm, sheetRow?: Record<string, any>) => {
         loading.value = true
         error.value = null
-
         try {
-            // If a SheetDB applications URL is configured, use it
-            if (appConfig.sheetdbApplicationUrl) {
-                // Use provided sheetRow when available, otherwise map from applicationData
-                const row: Record<string, any> = sheetRow ?? {
-                    id: 'INCREMENT',
-                    name: (applicationData as any).name || '',
-                    email: (applicationData as any).email || '',
-                    program: (applicationData as any).program || '',
-                    yearOfStudy: (applicationData as any).yearOfStudy || '',
-                    researchTopic: (applicationData as any).researchTopic || '',
-                    researchDescription: (applicationData as any).researchDescription || '',
-                    methodology: (applicationData as any).methodology || '',
-                    collaborationType: (applicationData as any).collaborationType || '',
-                    timeline: (applicationData as any).timeline || '',
-                    impact: (applicationData as any).impact || '',
-                    additionalInfo: (applicationData as any).additionalInfo || '',
-                }
-
-                const payload = { data: [row] }
-
-                const res = await fetch(appConfig.sheetdbApplicationUrl, {
-                    method: 'POST',
-                    headers: {
-                        Accept: 'application/json',
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify(payload),
-                })
-
-                if (!res.ok) {
-                    const txt = await res.text()
-                    throw new Error(`SheetDB Error: ${res.status} ${txt}`)
-                }
-
-                return true
+            if (!appConfig.sheetdbApplicationUrl) {
+                throw new Error('Application service not configured')
             }
 
-            // Fallback to existing API route if SheetDB not configured
-            await apiRequest('/applications', {
+            const row: Record<string, any> = sheetRow ?? {
+                id: 'INCREMENT',
+                name: (applicationData as any).name || '',
+                email: (applicationData as any).email || '',
+                program: (applicationData as any).program || '',
+                yearOfStudy: (applicationData as any).yearOfStudy || '',
+                researchTopic: (applicationData as any).researchTopic || '',
+                researchDescription: (applicationData as any).researchDescription || '',
+                methodology: (applicationData as any).methodology || '',
+                collaborationType: (applicationData as any).collaborationType || '',
+                timeline: (applicationData as any).timeline || '',
+                impact: (applicationData as any).impact || '',
+                additionalInfo: (applicationData as any).additionalInfo || '',
+            }
+
+            const payload = { data: [row] }
+
+            const res = await fetch(appConfig.sheetdbApplicationUrl, {
                 method: 'POST',
-                body: JSON.stringify({
-                    data: applicationData
-                })
+                headers: { Accept: 'application/json', 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload),
             })
+
+            if (!res.ok) {
+                const txt = await res.text()
+                throw new Error(`SheetDB Error: ${res.status} ${txt}`)
+            }
+
             return true
         } catch (err) {
             error.value = err instanceof Error ? err.message : 'Failed to submit application'
@@ -396,17 +197,9 @@ export const useApi = () => {
     }
 
     return {
-        // State
         loading: computed(() => loading.value),
         error: computed(() => error.value),
-
-        // Methods
         clearError,
-        getArticles,
-        getArticleBySlug,
-        getTeamMembers,
-        getResearchers,
-        getTags,
         subscribeNewsletter,
         submitApplication,
     }

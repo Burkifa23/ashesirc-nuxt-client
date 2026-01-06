@@ -51,7 +51,8 @@ const getEnvVar = (key: string, fallback?: string): string => {
 // Configuration object with all environment variables
 export const appConfig: AppConfig = {
     // API Configuration
-    apiBaseUrl: getEnvVar('VITE_API_BASE_URL'),
+    // Make legacy API base optional (empty string disables legacy Strapi calls)
+    apiBaseUrl: getEnvVar('VITE_API_BASE_URL', ''),
 
     // Application Configuration
     appName: getEnvVar('VITE_APP_NAME', 'Ashesi Research Club'),

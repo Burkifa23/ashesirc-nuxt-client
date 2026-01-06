@@ -186,11 +186,11 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
-import { useApi } from '@/composables/useApi'
+import { useStaticApi } from '@/composables/useStaticApi'
 import { useMarkdown } from '@/composables/useMarkdown'
 import type { Article } from '@/composables/useApi'
 
-const { getArticles, loading, error } = useApi()
+const { getArticles, loading, error } = useStaticApi()
 const { stripMarkdown } = useMarkdown()
 
 // State
@@ -204,7 +204,7 @@ const sortBy = ref('newest')
 // Fetch articles on mount
 onMounted(async () => {
   try {
-    const fetchedArticles = await getArticles({ populate: true })
+    const fetchedArticles = await getArticles()
     articles.value = fetchedArticles
   } catch (err) {
     console.error('Error fetching articles:', err)

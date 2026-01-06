@@ -5,8 +5,8 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "npm run generate-data && run-p type-check \"build-only {@}\" --",
-    "build-static": "npm run generate-data && vite build",
+    "build": "run-p type-check \"build-only {@}\" --",
+    "build-static": "vite build",
     "preview": "vite preview",
     "test:unit": "vitest",
     "build-only": "vite build",
@@ -14,7 +14,7 @@
     "lint": "eslint . --fix",
     "format": "prettier --write src/",
     "generate-data": "node scripts/generate-static-data.mjs",
-    "dev-with-static": "npm run generate-data && vite"
+    "dev-with-static": "vite"
   },
   "dependencies": {
     "@portabletext/vue": "^1.0.14",
